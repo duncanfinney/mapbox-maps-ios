@@ -33,6 +33,9 @@
 		17B48067268A4E9300CF0D5E /* DistanceExpressionExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17B48066268A4E9300CF0D5E /* DistanceExpressionExample.swift */; };
 		17B4806B268BD91000CF0D5E /* RasterTileSourceExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17B4806A268BD91000CF0D5E /* RasterTileSourceExample.swift */; };
 		17E28C5C2672A1160033DF0F /* SymbolClusteringExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17E28C5B2672A1160033DF0F /* SymbolClusteringExample.swift */; };
+		1FE5603C2B17A66E0029C2D5 /* SwiftCubicSpline in Frameworks */ = {isa = PBXBuildFile; productRef = 1FE5603B2B17A66E0029C2D5 /* SwiftCubicSpline */; };
+		1FE5603F2B17A69F0029C2D5 /* CubicSpline in Frameworks */ = {isa = PBXBuildFile; productRef = 1FE5603E2B17A69F0029C2D5 /* CubicSpline */; };
+		1FFE38842B17E0B3007ECC69 /* TestData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FFE38832B17E0B3007ECC69 /* TestData.swift */; };
 		304AB3B527439287005B6D09 /* ViewAnnotationMarkerExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 304AB3B427439287005B6D09 /* ViewAnnotationMarkerExample.swift */; };
 		30517C6A274BD4D300B706E5 /* ViewAnnotationBasicExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30517C69274BD4D300B706E5 /* ViewAnnotationBasicExample.swift */; };
 		3A347BAE2A9F676300EF9B39 /* WeatherAnnotationExample.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A347BAD2A9F676300EF9B39 /* WeatherAnnotationExample.swift */; };
@@ -226,6 +229,7 @@
 		17B48066268A4E9300CF0D5E /* DistanceExpressionExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistanceExpressionExample.swift; sourceTree = "<group>"; };
 		17B4806A268BD91000CF0D5E /* RasterTileSourceExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RasterTileSourceExample.swift; sourceTree = "<group>"; };
 		17E28C5B2672A1160033DF0F /* SymbolClusteringExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolClusteringExample.swift; sourceTree = "<group>"; };
+		1FFE38832B17E0B3007ECC69 /* TestData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestData.swift; sourceTree = "<group>"; };
 		304AB3B427439287005B6D09 /* ViewAnnotationMarkerExample.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ViewAnnotationMarkerExample.swift; sourceTree = "<group>"; };
 		30517C69274BD4D300B706E5 /* ViewAnnotationBasicExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewAnnotationBasicExample.swift; sourceTree = "<group>"; };
 		3A347BAD2A9F676300EF9B39 /* WeatherAnnotationExample.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAnnotationExample.swift; sourceTree = "<group>"; };
@@ -339,7 +343,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1FE5603F2B17A69F0029C2D5 /* CubicSpline in Frameworks */,
 				74F04A762A7A307400C051BC /* Fingertips in Frameworks */,
+				1FE5603C2B17A66E0029C2D5 /* SwiftCubicSpline in Frameworks */,
 				B5327E9D260124C00095B6BD /* MapboxMaps in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -456,6 +462,7 @@
 				732A54FF28DA470E00CDBFB7 /* PitchAndDistanceExample.swift */,
 				73620A062A71CD3D00FCC771 /* StandardStyleExample.swift */,
 				D308F1F22A4F5F6200220E9C /* InsetMapExample.swift */,
+				1FFE38832B17E0B3007ECC69 /* TestData.swift */,
 			);
 			path = "All Examples";
 			sourceTree = "<group>";
@@ -679,6 +686,8 @@
 			packageProductDependencies = (
 				B5327E9C260124C00095B6BD /* MapboxMaps */,
 				FE2755D42A12230B00EEC95F /* Fingertips */,
+				1FE5603B2B17A66E0029C2D5 /* SwiftCubicSpline */,
+				1FE5603E2B17A69F0029C2D5 /* CubicSpline */,
 			);
 			productName = Examples;
 			productReference = 077C4EEA252F7E88007636F1 /* Examples.app */;
@@ -754,6 +763,8 @@
 			mainGroup = 077C4EE1252F7E88007636F1;
 			packageReferences = (
 				FE2755D32A12230B00EEC95F /* XCRemoteSwiftPackageReference "Fingertips" */,
+				1FE5603A2B17A66E0029C2D5 /* XCRemoteSwiftPackageReference "SwiftCubicSpline" */,
+				1FE5603D2B17A69F0029C2D5 /* XCRemoteSwiftPackageReference "CubicSpline" */,
 			);
 			productRefGroup = 077C4EEB252F7E88007636F1 /* Products */;
 			projectDirPath = "";
@@ -966,6 +977,7 @@
 				A4211CE62592549900D215B4 /* RestrictCoordinateBoundsExample.swift in Sources */,
 				0C52BA9825AF8C880054ECA8 /* Custom3DPuckExample.swift in Sources */,
 				CADCF7292584990E0065C51B /* FeaturesAtPointExample.swift in Sources */,
+				1FFE38842B17E0B3007ECC69 /* TestData.swift in Sources */,
 				3AA5FAF529C0786A00758AC0 /* PuckPlayground.swift in Sources */,
 				CADCF71E2584990E0065C51B /* ExternalVectorSourceExample.swift in Sources */,
 				3A44669E28F6EA1600664AF5 /* FrameViewAnnotationsExample.swift in Sources */,
@@ -1326,6 +1338,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		1FE5603A2B17A66E0029C2D5 /* XCRemoteSwiftPackageReference "SwiftCubicSpline" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gscalzo/SwiftCubicSpline.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.0.0;
+			};
+		};
+		1FE5603D2B17A69F0029C2D5 /* XCRemoteSwiftPackageReference "CubicSpline" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/quantumOrange/CubicSpline.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.1;
+			};
+		};
 		FE2755D32A12230B00EEC95F /* XCRemoteSwiftPackageReference "Fingertips" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "git@github.com:mapbox/Fingertips.git";
@@ -1337,6 +1365,16 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1FE5603B2B17A66E0029C2D5 /* SwiftCubicSpline */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1FE5603A2B17A66E0029C2D5 /* XCRemoteSwiftPackageReference "SwiftCubicSpline" */;
+			productName = SwiftCubicSpline;
+		};
+		1FE5603E2B17A69F0029C2D5 /* CubicSpline */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1FE5603D2B17A69F0029C2D5 /* XCRemoteSwiftPackageReference "CubicSpline" */;
+			productName = CubicSpline;
+		};
 		B5327E9C260124C00095B6BD /* MapboxMaps */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MapboxMaps;

@@ -1,5 +1,8 @@
+import Foundation
 import UIKit
 import CoreLocation
+import CubicSpline
+//import SwiftCubicSpline // better one?
 @_spi(Experimental) import MapboxMaps
 
 final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
@@ -7,27 +10,7 @@ final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
     private var mapView: MapView!
     private var cancelables: Set<AnyCancelable> = []
     internal var routeLineSource: GeoJSONSource!
-    let allCoordinates = [
-        LocationCoordinate2D(latitude: 876, longitude: 950),
-        LocationCoordinate2D(latitude: 850, longitude: 912),
-        LocationCoordinate2D(latitude: 820, longitude: 894),
-        LocationCoordinate2D(latitude: 767, longitude: 904),
-        LocationCoordinate2D(latitude: 716, longitude: 948),
-        LocationCoordinate2D(latitude: 637, longitude: 995),
-        LocationCoordinate2D(latitude: 596, longitude: 1046),
-        LocationCoordinate2D(latitude: 538, longitude: 1114),
-        LocationCoordinate2D(latitude: 479, longitude: 1143),
-        LocationCoordinate2D(latitude: 458, longitude: 1146),
-        LocationCoordinate2D(latitude: 468, longitude: 1199),
-        LocationCoordinate2D(latitude: 470, longitude: 1263),
-        LocationCoordinate2D(latitude: 481, longitude: 1344),
-        LocationCoordinate2D(latitude: 482, longitude: 1362),
-        LocationCoordinate2D(latitude: 455, longitude: 1417),
-    ].map { loc in
-        let transformedX = loc.longitude / 3184
-        let transformedY = loc.latitude / 3184
-        return LocationCoordinate2D(latitude: transformedY, longitude: transformedX)
-    }
+    
     internal let sourceIdentifier = "route-source-identifier"
     
     private enum ID {
@@ -62,9 +45,9 @@ final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
       "protected": false,
       "draft": false
     }
-
+    
     """
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -94,6 +77,15 @@ final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
         do {
             addImageSource()
             addLine()
+            mapView.gestures.onMapTap.observe { [weak self] gesture in
+                guard let self = self else {
+                    return
+                }
+                print("animate the poly")
+                currentIndex = 0
+                animatePolyline()
+            }
+            .store(in: &cancelables)
         } catch {
             print("[Example/CustomRasterSourceExample] Error:\(error)")
         }
@@ -142,20 +134,39 @@ final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
         mapView.location.override(locationProvider: CustomLocationProvider())
     }
     
+    let lowZoomWidth = 5
+    let highZoomWidth = 20
+    
+    
     func addLine() {
-
         // Create a GeoJSON data source.
         routeLineSource = GeoJSONSource(id: sourceIdentifier)
-        routeLineSource.data = .feature(Feature(geometry: LineString(allCoordinates)))
-
-        // Create a line layer
+        routeLineSource.data = .feature(Feature(geometry: LineString([TestData.allCoordinates[currentIndex]])))
+        
+        // Create a shadow layer
+        var shadowLayer = LineLayer(id: "shadow-layer", source: sourceIdentifier)
+        shadowLayer.lineColor = .constant(StyleColor(UIColor.systemGreen.withAlphaComponent(0.3))) // Softer color
+        shadowLayer.lineWidth = .expression(
+            Exp(.interpolate) {
+                Exp(.linear)
+                Exp(.zoom)
+                14
+                lowZoomWidth + 5 // Slightly wider than the main line
+                18
+                highZoomWidth + 5
+            }
+        )
+        shadowLayer.lineCap = .constant(.round)
+        shadowLayer.lineJoin = .constant(.round)
+        
+        // Add the shadow layer to the map.
+        try! mapView.mapboxMap.addSource(routeLineSource)
+        try! mapView.mapboxMap.addLayer(shadowLayer)
+        
+        // Create a main line layer
         var lineLayer = LineLayer(id: "line-layer", source: sourceIdentifier)
-        lineLayer.lineColor = .constant(StyleColor(.red))
-
-        let lowZoomWidth = 5
-        let highZoomWidth = 20
-
-        // Use an expression to define the line width at different zoom extents
+        lineLayer.lineColor = .constant(StyleColor(.systemGreen))
+        lineLayer.lineOpacity = .constant(0.6)
         lineLayer.lineWidth = .expression(
             Exp(.interpolate) {
                 Exp(.linear)
@@ -168,13 +179,74 @@ final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
         )
         lineLayer.lineCap = .constant(.round)
         lineLayer.lineJoin = .constant(.round)
-
-        // Add the lineLayer to the map.
-        try! mapView.mapboxMap.addSource(routeLineSource)
-        try! mapView.mapboxMap.addLayer(lineLayer)
+        
+        // Add the main lineLayer above the shadow layer.
+        try! mapView.mapboxMap.addLayer(lineLayer, layerPosition: .above("shadow-layer"))
+        
+        // Define the source data and style layer for the airplane symbol.
+        var airplaneSymbol = GeoJSONSource(id: "source-id")
+        let point = Point(TestData.allCoordinates[0])
+        airplaneSymbol.data = .feature(Feature(geometry: point))
+        
+        try? mapView.mapboxMap.addImage(UIImage(named: "dest-pin")!, id: "marker-icon-id")
+        
+        var symbolLayer = SymbolLayer(id: "layer-id", source: "source-id")
+        symbolLayer.iconImage = .constant(.name("marker-icon-id"))
+        symbolLayer.iconIgnorePlacement = .constant(true)
+        symbolLayer.iconAllowOverlap = .constant(true)
+        symbolLayer.iconOffset = .constant([0, -12])
+        
+        try! mapView.mapboxMap.addSource(airplaneSymbol)
+        try! mapView.mapboxMap.addLayer(symbolLayer, layerPosition: nil)
+    }
+    
+    func animatePolyline() {
+        animationLock.lock()
+        defer { animationLock.unlock() }
+        
+        animationTimer?.invalidate()
+        
+        var currentCoordinates = [CLLocationCoordinate2D]()
+        animationTimer = Timer.scheduledTimer(withTimeInterval: 0.001, repeats: true) { [weak self] timer in
+            guard let self = self else {
+                timer.invalidate()
+                return
+            }
+            animationLock.lock()
+            defer { animationLock.unlock() }
+            
+            if self.currentIndex >= TestData.allCoordinates.count {
+                timer.invalidate()
+                return
+            }
+            
+            
+            currentCoordinates.append(TestData.allCoordinates[self.currentIndex])
+            
+            let updatedLine = Feature(geometry: LineString(currentCoordinates))
+            self.routeLineSource.data = .feature(updatedLine)
+            self.mapView.mapboxMap.updateGeoJSONSource(withId: self.sourceIdentifier,
+                                                       geoJSON: .feature(updatedLine))
+            
+            
+//            if self.currentIndex + 1 < TestData.allCoordinates.count {
+                // move the airplane
+                let coordinate = TestData.allCoordinates[self.currentIndex]
+//                let nextCoordinate = TestData.allCoordinates[self.currentIndex + 1]
+                var geoJSON = Feature(geometry: Point(coordinate))
+//                geoJSON.properties = ["bearing": .number(coordinate.direction(to: nextCoordinate))]
+                self.mapView.mapboxMap.updateGeoJSONSource(withId: "source-id",
+                                                                      geoJSON: .feature(geoJSON))
+//            }
+            
+            self.currentIndex += 1
+        }
     }
     
     private let lovelandImage: UIImage = UIImage(named: "Loveland")!
+    private let animationLock = NSLock()
+    private var currentIndex = 0
+    private var animationTimer: Timer? = nil
 }
 
 // Custom Location Provider

@@ -1,5 +1,6 @@
 import UIKit
 import MapboxMaps
+import CubicSpline
 
 public class MultipleGeometriesExample: UIViewController, ExampleProtocol {
     enum Constants {

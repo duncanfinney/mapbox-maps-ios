@@ -1,6 +1,15 @@
 {
   "pins" : [
     {
+      "identity" : "cubicspline",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/quantumOrange/CubicSpline.git",
+      "state" : {
+        "revision" : "7b239a8beadb4601b5f90724664c15f315b2c39a",
+        "version" : "1.0.1"
+      }
+    },
+    {
       "identity" : "fingertips",
       "kind" : "remoteSourceControl",
       "location" : "git@github.com:mapbox/Fingertips.git",
@@ -25,6 +34,15 @@
       "state" : {
         "revision" : "52bb5c64c584638863801894e6231ead6417fbab",
         "version" : "11.0.0-rc.2"
+      }
+    },
+    {
+      "identity" : "swiftcubicspline",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/gscalzo/SwiftCubicSpline.git",
+      "state" : {
+        "revision" : "a38eb0eb396d5b6b2be857f4a2ce44237865c3e7",
+        "version" : "2.0.0"
       }
     },
     {
