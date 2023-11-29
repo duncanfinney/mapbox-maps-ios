@@ -10,6 +10,10 @@ struct SwiftUIRoot: View {
         NavigationView {
             List {
                 Section {
+                    ExampleLink("DuncansExample", note: "Just a Map().", destination: Map())
+                } header: { Text("Duncan") }
+                
+                Section {
                     ExampleLink("Show me the map!", note: "Just a Map().", destination: Map().ignoresSafeArea())
                     ExampleLink("Locate Me", note: "Use Viewport to create user location control.", destination: LocateMeExample())
                     ExampleLink("Locations", note: "New look of locations, configure standard style parameters.", destination: StandardStyleLocationsExample())
