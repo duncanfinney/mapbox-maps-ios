@@ -2,104 +2,112 @@ import UIKit
 @_spi(Experimental) import MapboxMaps
 
 final class CustomRasterSourceExample: UIViewController, ExampleProtocol {
-
+    
     private var mapView: MapView!
     private var cancelables: Set<AnyCancelable> = []
     private var timer: Timer?
-
+    
     private enum ID {
         static let customRasterSource = "custom-raster-source"
         static let rasterLayer = "customRaster"
     }
-
+    
     deinit {
         timer?.invalidate()
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        mapView = MapView(frame: view.bounds, mapInitOptions: .init(cameraOptions: CameraOptions(center: .helsinki, zoom: 2)))
+        
+        mapView = MapView(
+            frame: view.bounds,
+            mapInitOptions:
+                    .init(cameraOptions: CameraOptions(center: CLLocationCoordinate2D(latitude: 0, longitude: 0), zoom: 4 ),
+                          styleURI: StyleURI(rawValue: "mapbox://styles/mapbox-map-design/ckhqrf2tz0dt119ny6azh975y")
+                         ))
+        
+        
         mapView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(mapView)
-
         mapView.mapboxMap.onStyleLoaded.observeNext { [weak self] _ in
             self?.setupExample()
-            // The below line is used for internal testing purposes only.
             self?.finish()
         }
         .store(in: &cancelables)
+        
+        mapView.ornaments.scaleBarView.isHidden = true
+        try! mapView.mapboxMap.allLayerIdentifiers.forEach{ id in
+            try mapView.mapboxMap.removeLayer(withId: id.id)
+        }
     }
-
+    
+    
     private func setupExample() {
         do {
-            let rasterSourceOptions = CustomRasterSourceOptions(
-                fetchTileFunction: { [weak self] tileID in
-                    guard let self else { return }
-
-                    try! self.mapView.mapboxMap.setCustomRasterSourceTileData(
-                        forSourceId: ID.customRasterSource,
-                        tileId: tileID,
-                        image: rasterImages[currentImageIndex])
-                },
-                cancelTileFunction: { _ in },
-                minZoom: 0,
-                maxZoom: 0,
-                tileSize: 256 // Image for raster tile  must be of same dimensions as tile size of the source.
-            )
-            try mapView.mapboxMap.addCustomRasterSource(forSourceId: ID.customRasterSource, options: rasterSourceOptions)
-
-            var rasterLayer = RasterLayer(id: ID.rasterLayer, source: ID.customRasterSource)
-            rasterLayer.rasterColorMix = .constant([1, 0, 0, 0])
-            rasterLayer.rasterColor = .expression(
-                Exp(.interpolate) {
-                    Exp(.linear)
-                    Exp(.lineProgress)
-                    0
-                    "rgba(0.0, 0.0, 0.0, 0.0)"
-                    0.3
-                    "rgba(7, 238, 251, 0.4)"
-                    0.5
-                    "rgba(0, 255, 42, 0.5)"
-                    0.7
-                    "rgba(255, 255, 0, 0.7)"
-                    1
-                    "rgba(255, 30, 0, 0.9)"
-                }
-            )
-            try mapView.mapboxMap.addLayer(rasterLayer)
-            scheduleNextRasterImage()
+            try mapView.mapboxMap.allLayerIdentifiers.forEach{ id in
+                try mapView.mapboxMap.removeLayer(withId: id.id)
+            }
+            
+            addImageSource()
+            addTerrain()
+            
         } catch {
             print("[Example/CustomRasterSourceExample] Error:\(error)")
         }
     }
-
-    // MARK: Raster Images
-
-    private var currentImageIndex = 0
-    private let rasterImages: [UIImage] = [
-        UIImage(named: "RasterSource/wind_0")!,
-        UIImage(named: "RasterSource/wind_1")!,
-        UIImage(named: "RasterSource/wind_2")!,
-        UIImage(named: "RasterSource/wind_3")!,
-    ]
-
-    private func scheduleNextRasterImage() {
-        guard timer == nil else {
-            timer?.invalidate()
-            return timer = nil
-        }
-
-        timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self else { return }
-
-            var currentImageIndex = self.currentImageIndex + 1
-            if currentImageIndex >= self.rasterImages.endIndex {
-                currentImageIndex = 0
+    
+    func addImageSource() {
+        let sourceId = "loveland-source"
+        
+        let yScale = lovelandImage.size.height / lovelandImage.size.width
+        print("yScale = 0 -> \(yScale)")
+        
+        var imageSource = ImageSource(id: sourceId)
+        imageSource.coordinates = [
+            [0, yScale],
+            [1, yScale],
+            [1, 0],
+            [0, 0]
+        ]
+        
+        let imageLayer = RasterLayer(id: "radar-layer", source: sourceId)
+        try! mapView.mapboxMap.addSource(imageSource)
+        try! mapView.mapboxMap.addLayer(imageLayer)
+        try! mapView.mapboxMap.updateImageSource(withId: sourceId, image: lovelandImage)
+        
+        // Add a tap gesture handler that will allow the animation to be stopped and started.
+        mapView.gestures.onMapTap.observe { [weak self] context in
+            guard let strongSelf = self else {
+                return
             }
-            self.currentImageIndex = currentImageIndex
+            let xPixel = strongSelf.lovelandImage.size.width * context.coordinate.longitude
+            let yPixel = strongSelf.lovelandImage.size.width * context.coordinate.latitude
+            let latLon = String(format: "%.4f, %.4f", xPixel, yPixel)
+            print("Map Tapped \(latLon)")
+        }.store(in: &cancelables)
+        
+        
 
-            try! self.mapView.mapboxMap.invalidateCustomRasterSourceRegion(forSourceId: ID.customRasterSource, bounds: .world)
-        }
+        let southWest = CLLocationCoordinate2D(latitude: 0, longitude: 0)
+        let northEast = CLLocationCoordinate2D(latitude: 1, longitude: 1)
+        let cameraOptions = mapView.mapboxMap.camera(for: [southWest, northEast], padding: .init(allEdges: 10), bearing: nil, pitch: nil)
+        mapView.mapboxMap.setCamera(to: cameraOptions)
     }
+    
+    func addTerrain() {
+        var demSource = RasterDemSource(id: "mapbox-dem")
+        demSource.url = "mapbox://mapbox.mapbox-terrain-dem-v1"
+        // Setting the `tileSize` to 514 provides better performance and adds padding around the outside
+        // of the tiles.
+        demSource.tileSize = 514
+        demSource.maxzoom = 14.0
+        try! mapView.mapboxMap.addSource(demSource)
+
+        var terrain = Terrain(sourceId: "mapbox-dem")
+        terrain.exaggeration = .constant(1.5)
+
+        try! mapView.mapboxMap.setTerrain(terrain)
+    }
+    
+    private let lovelandImage: UIImage = UIImage(named: "Loveland")!
 }
